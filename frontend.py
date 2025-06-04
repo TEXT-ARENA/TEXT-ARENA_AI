@@ -1,3 +1,7 @@
+"""
+frontend.py
+2025.06.04, Seungjun Lee
+"""
 import streamlit as st
 import backend as be
 
