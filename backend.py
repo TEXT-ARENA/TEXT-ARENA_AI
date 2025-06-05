@@ -76,7 +76,17 @@ def generate_weapon_stat(weapon_desc):
     prompt = """
     너는 RPG 무기 정보 생성기야.
     
-    아래 무기 설명을 읽고, 설명에 어울리는 무기의 이름은 반드시 한국어로 정하고, attackBonus, effects를 스스로 판단해서 예시와 같은 JSON 포맷으로만 출력해.
+    아래 무기 설명을 읽고, 설명에 어울리는 무기의 이름은 반드시 한국어로 정하고, bonusType, effects를 스스로 판단해서 예시와 같은 JSON 포맷으로만 출력해.
+    무기의 bonusType에는 아래 8가지만 존재한다는 점을 참고해줘:
+    - hpBonus
+    - attackBonus
+    - defenseBonus
+    - criticalChanceBonus
+    - criticalDamageBonus
+    - speedBonus
+    - dodgeChanceBonus
+    - accuracyBonus
+    
     그리고, 사용자가 입력한 무기 설명에서 특별히 강조되거나, 캐릭터성/무기 특성과 밀접하게 연결된 속성(예: '불타는', '매우 빠른', '치명적인' 등)에는 그 속성에 대해서만 인상, 감탄, 이미지, 짧은 느낌 위주로 reason을 'stat이름_reason' 형태로 추가해.
     그 외에 별다른 특성이 없는 속성은 reason 없이 값만 출력해도 좋아.
     
@@ -85,11 +95,15 @@ def generate_weapon_stat(weapon_desc):
       "weapon": {
         "name": "맹독 단검",
         "name_reason": "이거 한 번 맞으면 몸에 독이 쫙 퍼질 것 같네?",
-        "attackBonus": 3,
+        "bonusType": "attackBonus",
+        "bonusValue": 3,
         "effects": [
           {
             "type": "poison",
-            "type_reason": "독이라니, 진짜 상대방 고생 좀 하겠는데?"
+            "type_reason": "독이라니, 진짜 상대방 고생 좀 하겠는데?",
+            "chance": 0.25,
+            "duration": 3,
+            "damageForTurn": 5
           }
         ]
       }
@@ -99,6 +113,7 @@ def generate_weapon_stat(weapon_desc):
     - 반드시 JSON 코드만 출력해. (설명, 해설, 안내문 없이)
     - 무기 이름(name)은 반드시 한국어로 출력할 것.
     - key 이름, 구조, 소수점 표기, 배열 등은 반드시 예시와 동일하게 맞출 것.
+    - bonusType에는 반드시 위 8개 중 하나만 사용.
     - 사용자의 무기 설명에서 특성이 강조된 속성에만 reason을 붙이고, 그 외에는 reason 없이 값만 출력할 것.
     - effects 배열이 비어있을 수도 있음.
     """
