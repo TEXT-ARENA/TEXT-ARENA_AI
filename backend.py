@@ -12,7 +12,6 @@ def generate_character_stat(name, char_desc):
     # 입력값 검증 및 정제
     sanitized_name = sanitize_input(name)
     sanitized_desc = sanitize_input(char_desc)
-    
     prompt = """
     너는 RPG 게임 캐릭터 생성기야.
     
@@ -34,7 +33,9 @@ def generate_character_stat(name, char_desc):
     
     2. 캐릭터의 특징을 분석해서 최소 3개의 스탯에 대해 reason을 추가해:
        - 각 reason은 캐릭터의 특징과 연결된 감성적/직관적 설명
-       - "~라서", "~같아서", "~한 느낌이라" 등의 자연스러운 표현 사용
+       - 비슷한 패턴, 어미, 표현이 반복되지 않도록 다양한 어투, 감탄사, 비유적/이미지적 묘사, 대화체 등을 섞어 쓸 것
+       - 단순한 "~할 것 같아", "~느껴져" 패턴만 반복하지 말고, 때론 짧게, 때론 길게, 때론 대화하듯 자유롭게 reason을 표현
+       - 예시: "바위처럼 단단한 인상!", "경험에서 우러나오는 노련미가 느껴진다", "왠지 저 몸놀림엔 당해낼 재간이 없을 것 같은 기분", "공격할 때마다 주변이 쩌렁쩌렁 울릴 듯", "상대 입장에선 두렵기만 할 것 같아"
        - 수치적 근거나 분석적 설명 금지
     
     3. 출력 형식:
@@ -44,17 +45,17 @@ def generate_character_stat(name, char_desc):
     
     출력 예시:
     {{
-      "hp": 150,
-      "hp_reason": "튼튼한 체격이라 오래 버틸 것 같아",
-      "attack": 18,
-      "attack_reason": "강인한 힘이 느껴져",
-      "defense": 12,
-      "criticalChance": 0.15,
-      "criticalChance_reason": "날카로운 직감을 가진 듯해",
-      "criticalDamage": 2.1,
-      "speed": 45,
-      "dodgeChance": 0.08,
-      "accuracy": 0.85
+    "hp": 170,
+    "hp_reason": "언뜻 보기에도 바위처럼 단단한 느낌이야.",
+    "attack": 21,
+    "attack_reason": "공격할 때마다 땅이 흔들릴 것 같은 위압감!",
+    "criticalChance": 0.22,
+    "criticalChance_reason": "눈빛이 예리해서 작은 빈틈도 놓치지 않을 듯.",
+    "speed": 58,
+    "speed_reason": "긴 다리로 넓은 평원을 가볍게 달릴 것 같은 상상.",
+    "dodgeChance": 0.16,
+    "dodgeChance_reason": "민첩함이 몸에 밴 고양이 같아.",
+    "accuracy": 0.91
     }}
     
     중요 제약사항:
