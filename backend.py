@@ -237,16 +237,16 @@ def get_default_stats():
     }
     return json.dumps(default_stats, ensure_ascii=False, indent=2)
 
-def generate_weapon_stat(weapon_desc):
+def generate_weapon_stat(weapon_name, weapon_desc):
     prompt = f"""
     너는 RPG 무기 정보 생성기야.
     
+    무기 이름: {weapon_name}
     무기 설명: {weapon_desc}
     
     아래 규칙을 반드시 지켜서 무기 정보를 생성해:
-    1. 무기 설명을 참고해서 가장 어울리는 이름, bonusType, bonusValue, effects를 추론해야 해.
-    2. 무기 이름(name)은 반드시 한국어로 정할 것.
-    3. bonusType은 아래 8개 중 하나만 사용해야 해:
+    1. bonusType, bonusValue, effects를 무기 이름과 무기 설명을 참고해 추론해야 해.
+    2. bonusType은 아래 8개 중 하나만 사용해야 해:
        - hpBonus
        - attackBonus
        - defenseBonus
@@ -255,29 +255,38 @@ def generate_weapon_stat(weapon_desc):
        - speedBonus
        - dodgeChanceBonus
        - accuracyBonus
-    4. bonusValue는 아래 범위와 형식을 반드시 지켜서 출력해야 해. 절대로 이 범위를 넘거나 형식을 어기지 마!
-       - hpBonus: 10~60 사이의 **정수**
-       - attackBonus: 2~8 사이의 **정수**
-       - defenseBonus: 1~6 사이의 **정수**
-       - criticalChanceBonus: 0.01~0.09 사이의 **소수(소수점 2자리까지)**
-       - criticalDamageBonus: 0.1~0.6 사이의 **소수(소수점 1자리까지)**
-       - speedBonus: 3~27 사이의 **정수**
-       - dodgeChanceBonus: 0.01~0.08 사이의 **소수(소수점 2자리까지)**
-       - accuracyBonus: 0.01~0.08 사이의 **소수(소수점 2자리까지)**
-    5. reason 작성 시:
-       - reason은 무기 특성이나 설명에서 강조된 부분(예: '불타는', '날카로운', '가벼움' 등)에 대해서만 작성한다.
-       - reason은 감성적/직관적/이미지 위주의 설명을 사용한다.
+    3. bonusValue는 아래 범위와 형식을 반드시 지켜서 출력해야 해. 절대로 이 범위를 넘거나 형식을 어기지 마!
+       - hpBonus: 10~60 사이의 정수
+       - attackBonus: 2~8 사이의 정수
+       - defenseBonus: 1~6 사이의 정수
+       - criticalChanceBonus: 0.01~0.09 사이의 소수(소수점 2자리까지)
+       - criticalDamageBonus: 0.1~0.6 사이의 소수(소수점 1자리까지)
+       - speedBonus: 3~27 사이의 정수
+       - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
+       - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
+    4. 반드시 bonusType, effects 등 출력되는 모든 속성 중에서 **최소 1개 이상의 reason**(감성적/직관적/이미지 위주의 설명)을 포함해야 해.  
+       - reason은 무기 이름이나 설명에서 인상적이거나 특이한 부분을 참고해서 작성할 것.
+       - reason이 여러 개 붙어도 좋지만, 1개 이상은 꼭 포함해야 한다.
        - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
        - 예시: "손에 쥐는 순간 열기가 전해지는 기분!", "이걸 휘두르면 적도 움찔할 듯", "섬뜩할 정도로 날이 잘 들어 있어" 등.
        - 수치적, 분석적, 기계적인 설명은 금지.
+    5. effects 배열 내 각 속성의 의미는 아래와 같다:
+       - type: 부여되는 효과의 종류(예: poison, windRun 등)
+       - chance: 해당 효과가 발동할 확률 (0~1 사이 소수, 예: 0.25)
+       - duration: 효과가 유지되는 턴 수 (정수)
+       - bonusIncreasePerTurn: 효과가 발동한 턴 동안 bonusValue에 추가로 더해지는 수치 (정수)
+       - type_reason: 효과의 감성적/이미지적 설명
+       (예: bonusType이 "attackBonus", bonusValue가 6, effects.bonusIncreasePerTurn이 5라면, 효과 발동 시 총 공격력 증가량은 11)
     6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
     7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
     
     출력 예시:
+    # 입력 예시
+    # 무기 이름: 맹독 단검
+    # 무기 설명: 칼날에 맹독이 스며 있어 한 번만 맞아도 상대가 고통스러워한다.
+    
     {{
       "weapon": {{
-        "name": "맹독 단검",
-        "name_reason": "이거 한 번 맞으면 몸에 독이 쫙 퍼질 것 같네?",
         "bonusType": "attackBonus",
         "bonusValue": 6,
         "effects": [
@@ -286,14 +295,15 @@ def generate_weapon_stat(weapon_desc):
             "type_reason": "독이라니, 진짜 상대방 고생 좀 하겠는데?",
             "chance": 0.25,
             "duration": 3,
-            "damageForTurn": 5
+            "bonusIncreasePerTurn": 5
           }}
         ]
       }}
     }}
     
     중요:
-    - 반드시 위의 bonusValue 범위 내에서만 출력할 것!
+    - 반드시 bonusValue는 위 범위 내에서만 출력할 것!
+    - 반드시 출력되는 속성 중 최소 1개에는 reason(감성/이미지적 설명)이 포함되어야 한다!
     - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
     - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
@@ -318,16 +328,16 @@ def generate_weapon_stat(weapon_desc):
     output_text = response_body["content"][0]["text"]
     return output_text
     
-def generate_top_stat(top_desc):
+def generate_top_stat(top_name, top_desc):
     prompt = f"""
     너는 RPG 상의(갑옷) 정보 생성기야.
-    
-    상의(갑옷) 설명: {top_desc}
-    
+
+    상의 이름: {top_name}
+    상의 설명: {top_desc}
+
     아래 규칙을 반드시 지켜서 상의 정보를 생성해:
-    1. 설명을 참고해서 가장 어울리는 이름, bonusType, bonusValue, effects를 추론해야 해.
-    2. 이름(name)은 반드시 한국어로 정할 것.
-    3. bonusType은 아래 8개 중 하나만 사용해야 해:
+    1. bonusType, bonusValue, effects를 상의 이름과 상의 설명을 참고해 추론해야 해.
+    2. bonusType은 아래 8개 중 하나만 사용해야 해:
        - hpBonus
        - attackBonus
        - defenseBonus
@@ -336,48 +346,59 @@ def generate_top_stat(top_desc):
        - speedBonus
        - dodgeChanceBonus
        - accuracyBonus
-    4. bonusValue는 아래 범위와 형식을 반드시 지켜서 출력해야 해. 절대로 이 범위를 넘거나 형식을 어기지 마!
-       - hpBonus: 10~60 사이의 **정수**
-       - attackBonus: 2~8 사이의 **정수**
-       - defenseBonus: 1~6 사이의 **정수**
-       - criticalChanceBonus: 0.01~0.09 사이의 **소수(소수점 2자리까지)**
-       - criticalDamageBonus: 0.1~0.6 사이의 **소수(소수점 1자리까지)**
-       - speedBonus: 3~27 사이의 **정수**
-       - dodgeChanceBonus: 0.01~0.08 사이의 **소수(소수점 2자리까지)**
-       - accuracyBonus: 0.01~0.08 사이의 **소수(소수점 2자리까지)**
-    5. reason 작성 시:
-       - reason은 상의 특성이나 설명에서 강조된 부분(예: '튼튼함', '가볍다', '신비한 방어력' 등)에 대해서만 작성한다.
-       - reason은 감성적/직관적/이미지 위주의 설명을 사용한다.
+    3. bonusValue는 아래 범위와 형식을 반드시 지켜서 출력해야 해. 절대로 이 범위를 넘거나 형식을 어기지 마!
+       - hpBonus: 10~60 사이의 정수
+       - attackBonus: 2~8 사이의 정수
+       - defenseBonus: 1~6 사이의 정수
+       - criticalChanceBonus: 0.01~0.09 사이의 소수(소수점 2자리까지)
+       - criticalDamageBonus: 0.1~0.6 사이의 소수(소수점 1자리까지)
+       - speedBonus: 3~27 사이의 정수
+       - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
+       - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
+    4. 반드시 bonusType, effects 등 출력되는 모든 속성 중에서 **최소 1개 이상의 reason**(감성적/직관적/이미지 위주의 설명)을 포함해야 해.  
+       - reason은 상의 이름이나 설명에서 인상적이거나 특이한 부분을 참고해서 작성할 것.
+       - reason이 여러 개 붙어도 좋지만, 1개 이상은 꼭 포함해야 한다.
        - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
-       - 예시: "이 갑옷을 입으면 왠지 공격이 튕겨나갈 것 같은 기분!", "숨 쉴 때마다 금속이 부딪히는 소리가 울려 퍼질 듯" 등.
+       - 예시: "이 갑옷을 입으면 뭐든 막아낼 수 있을 것 같은 느낌!", "두꺼운 강철이 몸을 단단히 보호해줄 것만 같다!" 등.
        - 수치적, 분석적, 기계적인 설명은 금지.
+    5. effects 배열 내 각 속성의 의미는 아래와 같다:
+       - type: 부여되는 효과의 종류(예: ironWall, heal 등)
+       - chance: 해당 효과가 발동할 확률 (0~1 사이 소수, 예: 0.20)
+       - duration: 효과가 유지되는 턴 수 (정수)
+       - bonusIncreasePerTurn: 효과가 발동한 턴 동안 bonusValue에 추가로 더해지는 수치 (정수)
+       - type_reason: 효과의 감성적/이미지적 설명
+       (예: bonusType이 "defenseBonus", bonusValue가 5, effects.bonusIncreasePerTurn이 3라면, 효과 발동 시 총 방어력 증가량은 8)
     6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
     7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
-    
+
     출력 예시:
+    # 입력 예시
+    # 상의 이름: 강철 갑옷
+    # 상의 설명: 두꺼운 강철로 만들어져 어떤 공격도 견딜 수 있다.
+
     {{
       "top": {{
-        "name": "강철 갑옷",
-        "name_reason": "이 갑옷만 입으면 뭐든 막아낼 수 있을 것 같은 느낌!",
         "bonusType": "defenseBonus",
-        "bonusValue": 6,
+        "bonusValue": 5,
         "effects": [
           {{
             "type": "ironWall",
-            "type_reason": "적의 공격이 와도 철벽처럼 막아줄 것만 같아!",
-            "chance": 0.2,
+            "type_reason": "두꺼운 강철이 있어 무슨 공격도 끄떡없을 것 같다!",
+            "chance": 0.20,
             "duration": 2,
-            "effectForTurn": "받는 피해 30% 감소"
+            "bonusIncreasePerTurn": 3
           }}
         ]
       }}
     }}
-    
+
     중요:
-    - 반드시 위의 bonusValue 범위 내에서만 출력할 것!
+    - 반드시 bonusValue는 위 범위 내에서만 출력할 것!
+    - 반드시 출력되는 속성 중 최소 1개에는 reason(감성/이미지적 설명)이 포함되어야 한다!
     - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
     - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
+
     body = json.dumps(
         {
             "anthropic_version": "bedrock-2023-05-31",
@@ -398,16 +419,16 @@ def generate_top_stat(top_desc):
     output_text = response_body["content"][0]["text"]
     return output_text
 
-def generate_hat_stat(hat_desc):
+def generate_hat_stat(hat_name, hat_desc):
     prompt = f"""
     너는 RPG 모자(투구) 정보 생성기야.
-    
-    모자(투구) 설명: {hat_desc}
-    
+
+    모자 이름: {hat_name}
+    모자 설명: {hat_desc}
+
     아래 규칙을 반드시 지켜서 모자 정보를 생성해:
-    1. 설명을 참고해서 가장 어울리는 이름, bonusType, bonusValue, effects를 추론해야 해.
-    2. 이름(name)은 반드시 한국어로 정할 것.
-    3. bonusType은 아래 8개 중 하나만 사용해야 해:
+    1. bonusType, bonusValue, effects를 모자 이름과 모자 설명을 참고해 추론해야 해.
+    2. bonusType은 아래 8개 중 하나만 사용해야 해:
        - hpBonus
        - attackBonus
        - defenseBonus
@@ -416,48 +437,59 @@ def generate_hat_stat(hat_desc):
        - speedBonus
        - dodgeChanceBonus
        - accuracyBonus
-    4. bonusValue는 아래 범위와 형식을 반드시 지켜서 출력해야 해. 절대로 이 범위를 넘거나 형식을 어기지 마!
-       - hpBonus: 10~60 사이의 **정수**
-       - attackBonus: 2~8 사이의 **정수**
-       - defenseBonus: 1~6 사이의 **정수**
-       - criticalChanceBonus: 0.01~0.09 사이의 **소수(소수점 2자리까지)**
-       - criticalDamageBonus: 0.1~0.6 사이의 **소수(소수점 1자리까지)**
-       - speedBonus: 3~27 사이의 **정수**
-       - dodgeChanceBonus: 0.01~0.08 사이의 **소수(소수점 2자리까지)**
-       - accuracyBonus: 0.01~0.08 사이의 **소수(소수점 2자리까지)**
-    5. reason 작성 시:
-       - reason은 모자 특성이나 설명에서 강조된 부분(예: '지혜', '집중', '단단한 보호' 등)에 대해서만 작성한다.
-       - reason은 감성적/직관적/이미지 위주의 설명을 사용한다.
+    3. bonusValue는 아래 범위와 형식을 반드시 지켜서 출력해야 해. 절대로 이 범위를 넘거나 형식을 어기지 마!
+       - hpBonus: 10~60 사이의 정수
+       - attackBonus: 2~8 사이의 정수
+       - defenseBonus: 1~6 사이의 정수
+       - criticalChanceBonus: 0.01~0.09 사이의 소수(소수점 2자리까지)
+       - criticalDamageBonus: 0.1~0.6 사이의 소수(소수점 1자리까지)
+       - speedBonus: 3~27 사이의 정수
+       - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
+       - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
+    4. 반드시 bonusType, effects 등 출력되는 모든 속성 중에서 **최소 1개 이상의 reason**(감성적/직관적/이미지 위주의 설명)을 포함해야 해.  
+       - reason은 모자 이름이나 설명에서 인상적이거나 특이한 부분을 참고해서 작성할 것.
+       - reason이 여러 개 붙어도 좋지만, 1개 이상은 꼭 포함해야 한다.
        - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
-       - 예시: "쓰고 있으면 생각이 명료해질 듯!", "머리를 감싸는 보호막이 느껴진다" 등.
+       - 예시: "쓰면 머리가 시원해질 듯!", "집중력이 올라가는 느낌!" 등.
        - 수치적, 분석적, 기계적인 설명은 금지.
+    5. effects 배열 내 각 속성의 의미는 아래와 같다:
+       - type: 부여되는 효과의 종류(예: focus, shield 등)
+       - chance: 해당 효과가 발동할 확률 (0~1 사이 소수, 예: 0.18)
+       - duration: 효과가 유지되는 턴 수 (정수)
+       - bonusIncreasePerTurn: 효과가 발동한 턴 동안 bonusValue에 추가로 더해지는 수치 (정수)
+       - type_reason: 효과의 감성적/이미지적 설명
+       (예: bonusType이 "accuracyBonus", bonusValue가 0.07, effects.bonusIncreasePerTurn이 0.03라면, 효과 발동 시 명중률 총 증가량은 0.10)
     6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
     7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
-    
+
     출력 예시:
+    # 입력 예시
+    # 모자 이름: 지혜의 투구
+    # 모자 설명: 착용하면 머리가 맑아지고 집중력이 향상된다.
+
     {{
       "hat": {{
-        "name": "지혜의 투구",
-        "name_reason": "쓰고 있으면 마법사가 된 것 같은 기분이야!",
         "bonusType": "accuracyBonus",
-        "bonusValue": 0.08,
+        "bonusValue": 0.07,
         "effects": [
           {{
             "type": "focus",
-            "type_reason": "머리를 감싸는 에너지 덕분에 집중이 잘 되는 느낌!",
+            "type_reason": "머리가 맑아지니 모든 게 선명하게 보여!",
             "chance": 0.18,
             "duration": 2,
-            "effectForTurn": "2턴 동안 명중률 증가"
+            "bonusIncreasePerTurn": 3
           }}
         ]
       }}
     }}
-    
+
     중요:
-    - 반드시 위의 bonusValue 범위 내에서만 출력할 것!
+    - 반드시 bonusValue는 위 범위 내에서만 출력할 것!
+    - 반드시 출력되는 속성 중 최소 1개에는 reason(감성/이미지적 설명)이 포함되어야 한다!
     - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
     - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
+
     body = json.dumps(
         {
             "anthropic_version": "bedrock-2023-05-31",
@@ -478,16 +510,16 @@ def generate_hat_stat(hat_desc):
     output_text = response_body["content"][0]["text"]
     return output_text
 
-def generate_shoes_stat(shoes_desc):
+def generate_shoes_stat(shoes_name, shoes_desc):
     prompt = f"""
     너는 RPG 신발 정보 생성기야.
-    
+
+    신발 이름: {shoes_name}
     신발 설명: {shoes_desc}
-    
+
     아래 규칙을 반드시 지켜서 신발 정보를 생성해:
-    1. 설명을 참고해서 가장 어울리는 이름, bonusType, bonusValue, effects를 추론해야 해.
-    2. 이름(name)은 반드시 한국어로 정할 것.
-    3. bonusType은 아래 8개 중 하나만 사용해야 해:
+    1. bonusType, bonusValue, effects를 신발 이름과 신발 설명을 참고해 추론해야 해.
+    2. bonusType은 아래 8개 중 하나만 사용해야 해:
        - hpBonus
        - attackBonus
        - defenseBonus
@@ -496,48 +528,59 @@ def generate_shoes_stat(shoes_desc):
        - speedBonus
        - dodgeChanceBonus
        - accuracyBonus
-    4. bonusValue는 아래 범위와 형식을 반드시 지켜서 출력해야 해. 절대로 이 범위를 넘거나 형식을 어기지 마!
-       - hpBonus: 10~60 사이의 **정수**
-       - attackBonus: 2~8 사이의 **정수**
-       - defenseBonus: 1~6 사이의 **정수**
-       - criticalChanceBonus: 0.01~0.09 사이의 **소수(소수점 2자리까지)**
-       - criticalDamageBonus: 0.1~0.6 사이의 **소수(소수점 1자리까지)**
-       - speedBonus: 3~27 사이의 **정수**
-       - dodgeChanceBonus: 0.01~0.08 사이의 **소수(소수점 2자리까지)**
-       - accuracyBonus: 0.01~0.08 사이의 **소수(소수점 2자리까지)**
-    5. reason 작성 시:
-       - reason은 신발 특성이나 설명에서 강조된 부분(예: '빠르다', '가볍다', '민첩함' 등)에 대해서만 작성한다.
-       - reason은 감성적/직관적/이미지 위주의 설명을 사용한다.
+    3. bonusValue는 아래 범위와 형식을 반드시 지켜서 출력해야 해. 절대로 이 범위를 넘거나 형식을 어기지 마!
+       - hpBonus: 10~60 사이의 정수
+       - attackBonus: 2~8 사이의 정수
+       - defenseBonus: 1~6 사이의 정수
+       - criticalChanceBonus: 0.01~0.09 사이의 소수(소수점 2자리까지)
+       - criticalDamageBonus: 0.1~0.6 사이의 소수(소수점 1자리까지)
+       - speedBonus: 3~27 사이의 정수
+       - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
+       - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
+    4. 반드시 bonusType, effects 등 출력되는 모든 속성 중에서 **최소 1개 이상의 reason**(감성적/직관적/이미지 위주의 설명)을 포함해야 해.  
+       - reason은 신발 이름이나 설명에서 인상적이거나 특이한 부분을 참고해서 작성할 것.
+       - reason이 여러 개 붙어도 좋지만, 1개 이상은 꼭 포함해야 한다.
        - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
-       - 예시: "신으면 정말로 바람처럼 달릴 수 있을 것 같은 기분!", "발이 가벼워져서 어디든 빨리 갈 수 있을 듯!" 등.
+       - 예시: "신으면 진짜로 바람을 타는 기분일 것 같아!", "발이 가벼워져서 어디든 빨리 갈 수 있을 듯!" 등.
        - 수치적, 분석적, 기계적인 설명은 금지.
+    5. effects 배열 내 각 속성의 의미는 아래와 같다:
+       - type: 부여되는 효과의 종류(예: windRun, agility 등)
+       - chance: 해당 효과가 발동할 확률 (0~1 사이 소수, 예: 0.25)
+       - duration: 효과가 유지되는 턴 수 (정수)
+       - bonusIncreasePerTurn: 효과가 발동한 턴 동안 bonusValue에 추가로 더해지는 수치 (정수)
+       - type_reason: 효과의 감성적/이미지적 설명
+       (예: bonusType이 "speedBonus", bonusValue가 15, effects.bonusIncreasePerTurn이 5라면, 효과 발동 시 총 속도 증가량은 20)
     6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
     7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
-    
+
     출력 예시:
+    # 입력 예시
+    # 신발 이름: 바람의 신발
+    # 신발 설명: 신으면 엄청 빠르게 달릴 수 있다.
+
     {{
       "shoes": {{
-        "name": "바람의 신발",
-        "name_reason": "신으면 진짜로 바람을 타는 기분일 것 같아!",
         "bonusType": "speedBonus",
         "bonusValue": 15,
         "effects": [
           {{
             "type": "windRun",
-            "type_reason": "걷는 순간 발밑에 바람이 일어나는 상상!",
+            "type_reason": "발밑에 바람이 감기는 느낌! 엄청 빠를 것 같다.",
             "chance": 0.25,
             "duration": 3,
-            "effectForTurn": "한 턴마다 속도가 추가로 증가"
+            "bonusIncreasePerTurn": 5
           }}
         ]
       }}
     }}
-    
+
     중요:
-    - 반드시 위의 bonusValue 범위 내에서만 출력할 것!
+    - 반드시 bonusValue는 위 범위 내에서만 출력할 것!
+    - 반드시 출력되는 속성 중 최소 1개에는 reason(감성/이미지적 설명)이 포함되어야 한다!
     - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
     - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
+
     body = json.dumps(
         {
             "anthropic_version": "bedrock-2023-05-31",
@@ -557,3 +600,4 @@ def generate_shoes_stat(shoes_desc):
     response_body = json.loads(response.get("body").read())
     output_text = response_body["content"][0]["text"]
     return output_text
+
