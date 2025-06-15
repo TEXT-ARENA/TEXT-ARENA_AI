@@ -238,52 +238,65 @@ def get_default_stats():
     return json.dumps(default_stats, ensure_ascii=False, indent=2)
 
 def generate_weapon_stat(weapon_desc):
-    prompt = """
+    prompt = f"""
     너는 RPG 무기 정보 생성기야.
     
-    아래 무기 설명을 읽고, 설명에 어울리는 무기의 이름은 반드시 한국어로 정하고, bonusType, effects를 스스로 판단해서 예시와 같은 JSON 포맷으로만 출력해.
-    무기의 bonusType에는 아래 8가지만 존재한다는 점을 참고해줘:
-    - hpBonus
-    - attackBonus
-    - defenseBonus
-    - criticalChanceBonus
-    - criticalDamageBonus
-    - speedBonus
-    - dodgeChanceBonus
-    - accuracyBonus
+    무기 설명: {weapon_desc}
     
-    그리고, 사용자가 입력한 무기 설명에서 특별히 강조되거나, 캐릭터성/무기 특성과 밀접하게 연결된 속성(예: '불타는', '매우 빠른', '치명적인' 등)에는 그 속성에 대해서만 인상, 감탄, 이미지, 짧은 느낌 위주로 reason을 'stat이름_reason' 형태로 추가해.
-    그 외에 별다른 특성이 없는 속성은 reason 없이 값만 출력해도 좋아.
+    아래 규칙을 반드시 지켜서 무기 정보를 생성해:
+    1. 무기 설명을 참고해서 가장 어울리는 이름, bonusType, bonusValue, effects를 추론해야 해.
+    2. 무기 이름(name)은 반드시 한국어로 정할 것.
+    3. bonusType은 아래 8개 중 하나만 사용해야 해:
+       - hpBonus
+       - attackBonus
+       - defenseBonus
+       - criticalChanceBonus
+       - criticalDamageBonus
+       - speedBonus
+       - dodgeChanceBonus
+       - accuracyBonus
+    4. bonusValue는 아래 범위 내에서만 출력해야 해. 절대로 이 범위를 넘지 마!
+       - hpBonus: 10~60
+       - attackBonus: 2~8
+       - defenseBonus: 1~6
+       - criticalChanceBonus: 0.01~0.09
+       - criticalDamageBonus: 0.1~0.6
+       - speedBonus: 3~27
+       - dodgeChanceBonus: 0.01~0.08
+       - accuracyBonus: 0.01~0.08
+    5. reason 작성 시:
+       - reason은 무기 특성이나 설명에서 강조된 부분(예: '불타는', '날카로운', '가벼움' 등)에 대해서만 작성한다.
+       - reason은 감성적/직관적/이미지 위주의 설명을 사용한다.
+       - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
+       - 예시: "손에 쥐는 순간 열기가 전해지는 기분!", "이걸 휘두르면 적도 움찔할 듯", "섬뜩할 정도로 날이 잘 들어 있어" 등.
+       - 수치적, 분석적, 기계적인 설명은 금지.
+    6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
+    7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
     
-    예시:
-    {
-      "weapon": {
+    출력 예시:
+    {{
+      "weapon": {{
         "name": "맹독 단검",
         "name_reason": "이거 한 번 맞으면 몸에 독이 쫙 퍼질 것 같네?",
         "bonusType": "attackBonus",
-        "bonusValue": 3,
+        "bonusValue": 6,
         "effects": [
-          {
+          {{
             "type": "poison",
             "type_reason": "독이라니, 진짜 상대방 고생 좀 하겠는데?",
             "chance": 0.25,
             "duration": 3,
             "damageForTurn": 5
-          }
+          }}
         ]
-      }
-    }
+      }}
+    }}
     
-    주의사항:
-    - 반드시 JSON 코드만 출력해. (설명, 해설, 안내문 없이)
-    - 무기 이름(name)은 반드시 한국어로 출력할 것.
-    - key 이름, 구조, 소수점 표기, 배열 등은 반드시 예시와 동일하게 맞출 것.
-    - bonusType에는 반드시 위 8개 중 하나만 사용.
-    - 사용자의 무기 설명에서 특성이 강조된 속성에만 reason을 붙이고, 그 외에는 reason 없이 값만 출력할 것.
-    - effects 배열이 비어있을 수도 있음.
+    중요:
+    - 반드시 위의 bonusValue 범위 내에서만 출력할 것!
+    - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
+    - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
-
-    user_prompt = f" 무기 설명: {weapon_desc}"
     
     body = json.dumps(
         {
@@ -292,7 +305,7 @@ def generate_weapon_stat(weapon_desc):
             "messages": [
                 {
                     "role": "user",
-                    "content": [{"type": "text", "text": prompt + user_prompt}],
+                    "content": [{"type": "text", "text": prompt}],
                 }
             ],
         }
