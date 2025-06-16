@@ -286,7 +286,6 @@ def generate_weapon_stat(weapon_name, weapon_desc):
     # 무기 설명: 칼날에 맹독이 스며 있어 한 번만 맞아도 상대가 고통스러워한다.
     
     {{
-      "weapon": {{
         "bonusType": "attackBonus",
         "bonusValue": 6,
         "effects": [
@@ -298,7 +297,6 @@ def generate_weapon_stat(weapon_name, weapon_desc):
             "bonusIncreasePerTurn": 5
           }}
         ]
-      }}
     }}
     
     중요:
@@ -377,7 +375,6 @@ def generate_top_stat(top_name, top_desc):
     # 상의 설명: 두꺼운 강철로 만들어져 어떤 공격도 견딜 수 있다.
 
     {{
-      "top": {{
         "bonusType": "defenseBonus",
         "bonusValue": 5,
         "effects": [
@@ -389,7 +386,6 @@ def generate_top_stat(top_name, top_desc):
             "bonusIncreasePerTurn": 3
           }}
         ]
-      }}
     }}
 
     중요:
@@ -468,7 +464,6 @@ def generate_hat_stat(hat_name, hat_desc):
     # 모자 설명: 착용하면 머리가 맑아지고 집중력이 향상된다.
 
     {{
-      "hat": {{
         "bonusType": "accuracyBonus",
         "bonusValue": 0.07,
         "effects": [
@@ -480,7 +475,6 @@ def generate_hat_stat(hat_name, hat_desc):
             "bonusIncreasePerTurn": 3
           }}
         ]
-      }}
     }}
 
     중요:
@@ -559,7 +553,6 @@ def generate_shoes_stat(shoes_name, shoes_desc):
     # 신발 설명: 신으면 엄청 빠르게 달릴 수 있다.
 
     {{
-      "shoes": {{
         "bonusType": "speedBonus",
         "bonusValue": 15,
         "effects": [
@@ -571,7 +564,6 @@ def generate_shoes_stat(shoes_name, shoes_desc):
             "bonusIncreasePerTurn": 5
           }}
         ]
-      }}
     }}
 
     중요:
