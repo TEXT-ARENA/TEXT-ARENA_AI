@@ -264,11 +264,11 @@ def generate_weapon_stat(weapon_name, weapon_desc):
        - speedBonus: 3~27 사이의 정수
        - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
        - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
-    4. 반드시 bonusType, effects 등 출력되는 모든 속성 중에서 **최소 1개 이상의 reason**(감성적/직관적/이미지 위주의 설명)을 포함해야 해.  
-       - reason은 무기 이름이나 설명에서 인상적이거나 특이한 부분을 참고해서 작성할 것.
-       - reason이 여러 개 붙어도 좋지만, 1개 이상은 꼭 포함해야 한다.
-       - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
-       - 예시: "손에 쥐는 순간 열기가 전해지는 기분!", "이걸 휘두르면 적도 움찔할 듯", "섬뜩할 정도로 날이 잘 들어 있어" 등.
+    4. **반드시 bonusType_reason과 type_reason을 모두 생성해야 한다!**
+       - bonusType_reason: bonusType(예: attackBonus)에 대한 감성적/이미지적 설명
+       - type_reason: effect의 type(예: poison, windRun 등)에 대한 감성적/이미지적 설명
+       - 둘 중 하나라도 빠지면 안 됨. 무조건 둘 다 생성!
+       - "~할 것 같아", "~느껴져" 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 이미지적 묘사를 섞어서 쓸 것.
        - 수치적, 분석적, 기계적인 설명은 금지.
     5. effects 배열 내 각 속성의 의미는 아래와 같다:
        - type: 부여되는 효과의 종류(예: poison, windRun 등)
@@ -277,8 +277,9 @@ def generate_weapon_stat(weapon_name, weapon_desc):
        - bonusIncreasePerTurn: 효과가 발동한 턴 동안 bonusValue에 추가로 더해지는 수치 (정수)
        - type_reason: 효과의 감성적/이미지적 설명
        (예: bonusType이 "attackBonus", bonusValue가 6, effects.bonusIncreasePerTurn이 5라면, 효과 발동 시 총 공격력 증가량은 11)
-    6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
-    7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
+    6. **출력은 반드시 아래 예시와 완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
+    7. 예시에서 사용된 key 외의 추가적인 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 생성하지 마.
+    8. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
     
     출력 예시:
     # 입력 예시
@@ -287,6 +288,7 @@ def generate_weapon_stat(weapon_name, weapon_desc):
     
     {{
         "bonusType": "attackBonus",
+        "bonusType_reason": "도적의 단검이 이토록 위험해 보이다니, 진짜 치명적이야!",
         "bonusValue": 6,
         "effects": [
           {{
@@ -300,12 +302,13 @@ def generate_weapon_stat(weapon_name, weapon_desc):
     }}
     
     중요:
+    - 반드시 bonusType_reason과 type_reason을 모두 생성해야 하며, 둘 중 하나라도 빠지면 안 됨!
     - 반드시 bonusValue는 위 범위 내에서만 출력할 것!
-    - 반드시 출력되는 속성 중 최소 1개에는 reason(감성/이미지적 설명)이 포함되어야 한다!
+    - 예시에서 사용하지 않은 어떤 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 추가하지 마라!
     - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
     - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
-    
+     
     body = json.dumps(
         {
             "anthropic_version": "bedrock-2023-05-31",
@@ -353,11 +356,11 @@ def generate_top_stat(top_name, top_desc):
        - speedBonus: 3~27 사이의 정수
        - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
        - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
-    4. 반드시 bonusType, effects 등 출력되는 모든 속성 중에서 **최소 1개 이상의 reason**(감성적/직관적/이미지 위주의 설명)을 포함해야 해.  
-       - reason은 상의 이름이나 설명에서 인상적이거나 특이한 부분을 참고해서 작성할 것.
-       - reason이 여러 개 붙어도 좋지만, 1개 이상은 꼭 포함해야 한다.
-       - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
-       - 예시: "이 갑옷을 입으면 뭐든 막아낼 수 있을 것 같은 느낌!", "두꺼운 강철이 몸을 단단히 보호해줄 것만 같다!" 등.
+    4. **반드시 bonusType_reason과 type_reason을 모두 생성해야 한다!**
+       - bonusType_reason: bonusType(예: defenseBonus)에 대한 감성적/이미지적 설명
+       - type_reason: effect의 type(예: ironWall, heal 등)에 대한 감성적/이미지적 설명
+       - 둘 중 하나라도 빠지면 안 됨. 무조건 둘 다 생성!
+       - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 이미지적 묘사를 섞어서 쓸 것.
        - 수치적, 분석적, 기계적인 설명은 금지.
     5. effects 배열 내 각 속성의 의미는 아래와 같다:
        - type: 부여되는 효과의 종류(예: ironWall, heal 등)
@@ -367,7 +370,8 @@ def generate_top_stat(top_name, top_desc):
        - type_reason: 효과의 감성적/이미지적 설명
        (예: bonusType이 "defenseBonus", bonusValue가 5, effects.bonusIncreasePerTurn이 3라면, 효과 발동 시 총 방어력 증가량은 8)
     6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
-    7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
+    7. 예시에서 사용된 key 외의 추가적인 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 생성하지 마.
+    8. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
 
     출력 예시:
     # 입력 예시
@@ -376,11 +380,12 @@ def generate_top_stat(top_name, top_desc):
 
     {{
         "bonusType": "defenseBonus",
+        "bonusType_reason": "강철의 무게가 어깨에 실려서, 어떤 공격도 버틸 것 같은 기분!",
         "bonusValue": 5,
         "effects": [
           {{
             "type": "ironWall",
-            "type_reason": "두꺼운 강철이 있어 무슨 공격도 끄떡없을 것 같다!",
+            "type_reason": "철벽 같은 느낌! 적의 공격이 튕겨나갈 것만 같아.",
             "chance": 0.20,
             "duration": 2,
             "bonusIncreasePerTurn": 3
@@ -389,8 +394,9 @@ def generate_top_stat(top_name, top_desc):
     }}
 
     중요:
+    - 반드시 bonusType_reason과 type_reason을 모두 생성해야 하며, 둘 중 하나라도 빠지면 안 됨!
     - 반드시 bonusValue는 위 범위 내에서만 출력할 것!
-    - 반드시 출력되는 속성 중 최소 1개에는 reason(감성/이미지적 설명)이 포함되어야 한다!
+    - 예시에서 사용하지 않은 어떤 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 추가하지 마라!
     - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
     - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
@@ -417,13 +423,13 @@ def generate_top_stat(top_name, top_desc):
 
 def generate_hat_stat(hat_name, hat_desc):
     prompt = f"""
-    너는 RPG 모자(투구) 정보 생성기야.
+    너는 RPG 상의(갑옷) 정보 생성기야.
 
-    모자 이름: {hat_name}
-    모자 설명: {hat_desc}
+    상의 이름: {top_name}
+    상의 설명: {top_desc}
 
-    아래 규칙을 반드시 지켜서 모자 정보를 생성해:
-    1. bonusType, bonusValue, effects를 모자 이름과 모자 설명을 참고해 추론해야 해.
+    아래 규칙을 반드시 지켜서 상의 정보를 생성해:
+    1. bonusType, bonusValue, effects를 상의 이름과 상의 설명을 참고해 추론해야 해.
     2. bonusType은 아래 8개 중 하나만 사용해야 해:
        - hpBonus
        - attackBonus
@@ -442,35 +448,37 @@ def generate_hat_stat(hat_name, hat_desc):
        - speedBonus: 3~27 사이의 정수
        - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
        - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
-    4. 반드시 bonusType, effects 등 출력되는 모든 속성 중에서 **최소 1개 이상의 reason**(감성적/직관적/이미지 위주의 설명)을 포함해야 해.  
-       - reason은 모자 이름이나 설명에서 인상적이거나 특이한 부분을 참고해서 작성할 것.
-       - reason이 여러 개 붙어도 좋지만, 1개 이상은 꼭 포함해야 한다.
-       - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
-       - 예시: "쓰면 머리가 시원해질 듯!", "집중력이 올라가는 느낌!" 등.
+    4. **반드시 bonusType_reason과 type_reason을 모두 생성해야 한다!**
+       - bonusType_reason: bonusType(예: defenseBonus)에 대한 감성적/이미지적 설명
+       - type_reason: effect의 type(예: ironWall, heal 등)에 대한 감성적/이미지적 설명
+       - 둘 중 하나라도 빠지면 안 됨. 무조건 둘 다 생성!
+       - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 이미지적 묘사를 섞어서 쓸 것.
        - 수치적, 분석적, 기계적인 설명은 금지.
     5. effects 배열 내 각 속성의 의미는 아래와 같다:
-       - type: 부여되는 효과의 종류(예: focus, shield 등)
-       - chance: 해당 효과가 발동할 확률 (0~1 사이 소수, 예: 0.18)
+       - type: 부여되는 효과의 종류(예: ironWall, heal 등)
+       - chance: 해당 효과가 발동할 확률 (0~1 사이 소수, 예: 0.20)
        - duration: 효과가 유지되는 턴 수 (정수)
        - bonusIncreasePerTurn: 효과가 발동한 턴 동안 bonusValue에 추가로 더해지는 수치 (정수)
        - type_reason: 효과의 감성적/이미지적 설명
-       (예: bonusType이 "accuracyBonus", bonusValue가 0.07, effects.bonusIncreasePerTurn이 0.03라면, 효과 발동 시 명중률 총 증가량은 0.10)
+       (예: bonusType이 "defenseBonus", bonusValue가 5, effects.bonusIncreasePerTurn이 3라면, 효과 발동 시 총 방어력 증가량은 8)
     6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
-    7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
+    7. 예시에서 사용된 key 외의 추가적인 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 생성하지 마.
+    8. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
 
     출력 예시:
     # 입력 예시
-    # 모자 이름: 지혜의 투구
-    # 모자 설명: 착용하면 머리가 맑아지고 집중력이 향상된다.
+    # 상의 이름: 강철 갑옷
+    # 상의 설명: 두꺼운 강철로 만들어져 어떤 공격도 견딜 수 있다.
 
     {{
-        "bonusType": "accuracyBonus",
-        "bonusValue": 0.07,
+        "bonusType": "defenseBonus",
+        "bonusType_reason": "강철의 무게가 어깨에 실려서, 어떤 공격도 버틸 것 같은 기분!",
+        "bonusValue": 5,
         "effects": [
           {{
-            "type": "focus",
-            "type_reason": "머리가 맑아지니 모든 게 선명하게 보여!",
-            "chance": 0.18,
+            "type": "ironWall",
+            "type_reason": "철벽 같은 느낌! 적의 공격이 튕겨나갈 것만 같아.",
+            "chance": 0.20,
             "duration": 2,
             "bonusIncreasePerTurn": 3
           }}
@@ -478,12 +486,13 @@ def generate_hat_stat(hat_name, hat_desc):
     }}
 
     중요:
+    - 반드시 bonusType_reason과 type_reason을 모두 생성해야 하며, 둘 중 하나라도 빠지면 안 됨!
     - 반드시 bonusValue는 위 범위 내에서만 출력할 것!
-    - 반드시 출력되는 속성 중 최소 1개에는 reason(감성/이미지적 설명)이 포함되어야 한다!
+    - 예시에서 사용하지 않은 어떤 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 추가하지 마라!
     - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
     - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
-
+    
     body = json.dumps(
         {
             "anthropic_version": "bedrock-2023-05-31",
@@ -531,11 +540,11 @@ def generate_shoes_stat(shoes_name, shoes_desc):
        - speedBonus: 3~27 사이의 정수
        - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
        - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
-    4. 반드시 bonusType, effects 등 출력되는 모든 속성 중에서 **최소 1개 이상의 reason**(감성적/직관적/이미지 위주의 설명)을 포함해야 해.  
-       - reason은 신발 이름이나 설명에서 인상적이거나 특이한 부분을 참고해서 작성할 것.
-       - reason이 여러 개 붙어도 좋지만, 1개 이상은 꼭 포함해야 한다.
-       - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 대화체, 이미지적 묘사를 섞어서 쓸 것.
-       - 예시: "신으면 진짜로 바람을 타는 기분일 것 같아!", "발이 가벼워져서 어디든 빨리 갈 수 있을 듯!" 등.
+    4. 반드시 bonusType_reason과 type_reason을 모두 생성해야 한다!
+       - bonusType_reason: bonusType(예: speedBonus 등)에 대한 감성적/이미지적 설명
+       - type_reason: effect의 type(예: windRun, agility 등)에 대한 감성적/이미지적 설명
+       - 둘 중 하나라도 빠지면 안 됨. 무조건 둘 다 생성!
+       - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 이미지적 묘사를 섞어서 쓸 것.
        - 수치적, 분석적, 기계적인 설명은 금지.
     5. effects 배열 내 각 속성의 의미는 아래와 같다:
        - type: 부여되는 효과의 종류(예: windRun, agility 등)
@@ -545,7 +554,8 @@ def generate_shoes_stat(shoes_name, shoes_desc):
        - type_reason: 효과의 감성적/이미지적 설명
        (예: bonusType이 "speedBonus", bonusValue가 15, effects.bonusIncreasePerTurn이 5라면, 효과 발동 시 총 속도 증가량은 20)
     6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
-    7. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
+    7. 예시에서 사용된 key 외의 추가적인 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 생성하지 마.
+    8. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
 
     출력 예시:
     # 입력 예시
@@ -554,11 +564,12 @@ def generate_shoes_stat(shoes_name, shoes_desc):
 
     {{
         "bonusType": "speedBonus",
+        "bonusType_reason": "신는 순간 발밑에 바람이 감겨오는 느낌!",
         "bonusValue": 15,
         "effects": [
           {{
             "type": "windRun",
-            "type_reason": "발밑에 바람이 감기는 느낌! 엄청 빠를 것 같다.",
+            "type_reason": "날아다닐 듯 가볍고 빠를 것만 같은 기분이야!",
             "chance": 0.25,
             "duration": 3,
             "bonusIncreasePerTurn": 5
@@ -567,12 +578,13 @@ def generate_shoes_stat(shoes_name, shoes_desc):
     }}
 
     중요:
+    - 반드시 bonusType_reason과 type_reason을 모두 생성해야 하며, 둘 중 하나라도 빠지면 안 됨!
     - 반드시 bonusValue는 위 범위 내에서만 출력할 것!
-    - 반드시 출력되는 속성 중 최소 1개에는 reason(감성/이미지적 설명)이 포함되어야 한다!
+    - 예시에서 사용하지 않은 어떤 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 추가하지 마라!
     - 예시와 완전히 동일한 JSON 구조, key, 소수점 자리, 배열 형태, 순서로만 출력할 것!
     - 그 외 어떤 텍스트, 설명, 안내문, 코드블록도 절대 포함하지 마라.
     """
-
+    
     body = json.dumps(
         {
             "anthropic_version": "bedrock-2023-05-31",
