@@ -423,13 +423,13 @@ def generate_top_stat(top_name, top_desc):
 
 def generate_hat_stat(hat_name, hat_desc):
     prompt = f"""
-    너는 RPG 상의(갑옷) 정보 생성기야.
+    너는 RPG 모자(투구) 정보 생성기야.
 
-    상의 이름: {top_name}
-    상의 설명: {top_desc}
+    모자 이름: {hat_name}
+    모자 설명: {hat_desc}
 
-    아래 규칙을 반드시 지켜서 상의 정보를 생성해:
-    1. bonusType, bonusValue, effects를 상의 이름과 상의 설명을 참고해 추론해야 해.
+    아래 규칙을 반드시 지켜서 모자 정보를 생성해:
+    1. bonusType, bonusValue, effects를 모자 이름과 모자 설명을 참고해 추론해야 해.
     2. bonusType은 아래 8개 중 하나만 사용해야 해:
        - hpBonus
        - attackBonus
@@ -448,37 +448,37 @@ def generate_hat_stat(hat_name, hat_desc):
        - speedBonus: 3~27 사이의 정수
        - dodgeChanceBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
        - accuracyBonus: 0.01~0.08 사이의 소수(소수점 2자리까지)
-    4. **반드시 bonusType_reason과 type_reason을 모두 생성해야 한다!**
-       - bonusType_reason: bonusType(예: defenseBonus)에 대한 감성적/이미지적 설명
-       - type_reason: effect의 type(예: ironWall, heal 등)에 대한 감성적/이미지적 설명
+    4. 반드시 bonusType_reason과 type_reason을 모두 생성해야 한다!
+       - bonusType_reason: bonusType(예: accuracyBonus 등)에 대한 감성적/이미지적 설명
+       - type_reason: effect의 type(예: focus, shield 등)에 대한 감성적/이미지적 설명
        - 둘 중 하나라도 빠지면 안 됨. 무조건 둘 다 생성!
        - "~할 것 같아", "~느껴져"와 같은 패턴만 반복하지 말고, 다양한 어투, 감탄사, 비유, 이미지적 묘사를 섞어서 쓸 것.
        - 수치적, 분석적, 기계적인 설명은 금지.
     5. effects 배열 내 각 속성의 의미는 아래와 같다:
-       - type: 부여되는 효과의 종류(예: ironWall, heal 등)
-       - chance: 해당 효과가 발동할 확률 (0~1 사이 소수, 예: 0.20)
+       - type: 부여되는 효과의 종류(예: focus, shield 등)
+       - chance: 해당 효과가 발동할 확률 (0~1 사이 소수, 예: 0.18)
        - duration: 효과가 유지되는 턴 수 (정수)
        - bonusIncreasePerTurn: 효과가 발동한 턴 동안 bonusValue에 추가로 더해지는 수치 (정수)
        - type_reason: 효과의 감성적/이미지적 설명
-       (예: bonusType이 "defenseBonus", bonusValue가 5, effects.bonusIncreasePerTurn이 3라면, 효과 발동 시 총 방어력 증가량은 8)
+       (예: bonusType이 "accuracyBonus", bonusValue가 0.07, effects.bonusIncreasePerTurn이 0.03라면, 효과 발동 시 명중률 총 증가량은 0.10)
     6. 출력은 반드시 아래 예시와 **완전히 똑같은 JSON 구조, key 이름, 소수점 표기, 배열, reason key, 순서**로만 작성해야 해.
     7. 예시에서 사용된 key 외의 추가적인 key, reason, 속성(bonusValue_reason, effects_reason 등)은 절대 생성하지 마.
     8. 설명, 해설, 안내문, 코드블록 등은 절대 출력하지 마.
 
     출력 예시:
     # 입력 예시
-    # 상의 이름: 강철 갑옷
-    # 상의 설명: 두꺼운 강철로 만들어져 어떤 공격도 견딜 수 있다.
+    # 모자 이름: 지혜의 투구
+    # 모자 설명: 착용하면 머리가 맑아지고 집중력이 향상된다.
 
     {{
-        "bonusType": "defenseBonus",
-        "bonusType_reason": "강철의 무게가 어깨에 실려서, 어떤 공격도 버틸 것 같은 기분!",
-        "bonusValue": 5,
+        "bonusType": "accuracyBonus",
+        "bonusType_reason": "머리에 쓰는 순간 머릿속이 맑아지는 기분!",
+        "bonusValue": 0.07,
         "effects": [
           {{
-            "type": "ironWall",
-            "type_reason": "철벽 같은 느낌! 적의 공격이 튕겨나갈 것만 같아.",
-            "chance": 0.20,
+            "type": "focus",
+            "type_reason": "뇌가 깨끗하게 정돈되는 느낌이야!",
+            "chance": 0.18,
             "duration": 2,
             "bonusIncreasePerTurn": 3
           }}
